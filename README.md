@@ -26,7 +26,12 @@ DB_DATABASE=your-database # or your database
 ## Now Create Database Config File
 
 ```bash
-touch src/config/database.config.ts
+mkdir -p src/config && touch src/config/database.config.ts
+
+# If not working, try this manual
+# mkdir src/config
+# touch src/config/database.config.ts
+
 ```
 
 ## Add the configurations in database.config.ts
