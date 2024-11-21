@@ -1,7 +1,7 @@
 import { Global, Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AppDataSource, typeormConfig } from './config/database.config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './user/user.module';
@@ -15,12 +15,18 @@ import JwtUpdated from './dto/jwt.import';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [typeormConfig],
     }),
     JwtUpdated,
     ScheduleModule.forRoot(),
     TypeOrmModule.forRootAsync({
-      useFactory: async () => AppDataSource.options,
+      useFactory: async (configService: ConfigService) => {
+        const dataSourceOptions = typeormConfig(configService);
+        return {
+          ...dataSourceOptions,
+          entities: [User], // Add specific entities here if needed
+        };
+      },
+      inject: [ConfigService],
     }),
     UserModule,
     TypeOrmModule.forFeature([User]),
