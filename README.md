@@ -37,50 +37,50 @@ mkdir -p src/config && touch src/config/database.config.ts
 ## Add the configurations in database.config.ts
 
 ```typescript
+// src/config/database.config.ts
 import { DataSource, DataSourceOptions } from 'typeorm';
-import * as dotenv from 'dotenv';
-dotenv.config();
-export const typeormConfig = () => ({
+import { ConfigService } from '@nestjs/config';
+
+export const typeormConfig = (
+  configService: ConfigService,
+): DataSourceOptions => ({
   type: 'postgres',
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT,
-  username: process.env.DB_USERNAME,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_DATABASE,
+  host: configService.get<string>('DB_HOST'),
+  port: configService.get<number>('DB_PORT'),
+  username: configService.get<string>('DB_USERNAME'),
+  password: configService.get<string>('DB_PASSWORD'),
+  database: configService.get<string>('DB_DATABASE'),
   entities: [__dirname + '/../**/*.entity.{ts,js}'],
   migrations: [__dirname + '/../migrations/*.{ts,js}'],
   synchronize: false,
 });
 
-// Export the AppDataSource instance as well for direct use
-export const AppDataSource = new DataSource(
-  typeormConfig() as DataSourceOptions,
-);
+export const AppDataSource = new DataSource(typeormConfig(new ConfigService()));
+
 ```
 
-### Now Open app.module.ts <small>(or You main Module File )</small> and add the following configurations
+### Now Open app.module.ts <small>(or Your main Module File)</small> and add the following configurations
 
 ```typescript
 // import the ConfigModule and TypeOrmModule
 import { ConfigModule } from '@nestjs/config';
 import { AppDataSource, typeormConfig } from './config/database.config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-
-@Module({
-  imports: [
-    // Add this ConfigModule.forRoot() in your imports array
-    ConfigModule.forRoot({
-      isGlobal: true,
-      load: [typeormConfig],
-    }),
-    TypeOrmModule.forRootAsync({
-      useFactory: async () => AppDataSource.options,
-    }),
-
-    // Your Other Modules Here
-  ],
-})
+ConfigModule.forRoot({
+  isGlobal: true,
+}),
+TypeOrmModule.forRootAsync({
+  useFactory: async (configService: ConfigService) => {
+    const dataSourceOptions = typeormConfig(configService);
+    return {
+      ...dataSourceOptions,
+      entities: [User], // Add your entities here
+    };
+  },
+  inject: [ConfigService],
+}),
 ```
 
 ## Bonus Tip for TypeORM Migration
@@ -88,7 +88,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 ### Add the following scripts in your package.json
 
 ```json
-
 "scripts": {
     "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
     "migration:run": "npm run typeorm -- migration:run -d ./src/config/database.config.ts",
@@ -101,7 +100,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 #### Migration Usage Guide
 
 ```bash
-
 # Create New Migration
 npm run migration:create your-migration-name
 
@@ -118,4 +116,4 @@ npm run migration:revert
 ## That's it. You are good to go. Happy Coding!
 
 Author: [Sanjay Kumar](https://sanjay.works)
-Email: [me@sanjay.works](mailto:me@sanjay.works)
+Email: [Mail Me](mailto:sanjaykm.live@gmail.com)

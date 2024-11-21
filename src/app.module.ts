@@ -2,7 +2,7 @@ import { Global, Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { AppDataSource, typeormConfig } from './config/database.config';
+import { typeormConfig } from './config/database.config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './user/user.module';
 import { User } from './user/entities/user.entity';
@@ -16,8 +16,6 @@ import JwtUpdated from './dto/jwt.import';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    JwtUpdated,
-    ScheduleModule.forRoot(),
     TypeOrmModule.forRootAsync({
       useFactory: async (configService: ConfigService) => {
         const dataSourceOptions = typeormConfig(configService);
@@ -28,6 +26,8 @@ import JwtUpdated from './dto/jwt.import';
       },
       inject: [ConfigService],
     }),
+    JwtUpdated,
+    ScheduleModule.forRoot(),
     UserModule,
     TypeOrmModule.forFeature([User]),
   ],
